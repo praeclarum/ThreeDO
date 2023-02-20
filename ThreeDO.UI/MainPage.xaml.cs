@@ -1,11 +1,15 @@
-﻿namespace ThreeDO;
+﻿using Microsoft.Maui.ApplicationModel;
+
+namespace ThreeDO;
 
 public partial class MainPage : ContentPage
 {
 	int count = 0;
+	readonly BatchConversion batch = new ();
 
-	public MainPage()
+    public MainPage()
 	{
+		BindingContext = batch;
 		InitializeComponent();
 	}
 
@@ -13,14 +17,16 @@ public partial class MainPage : ContentPage
     {
     }
 
-    void OnExportGltfClicked(object sender, EventArgs e)
+    async Task OnExportGltfClicked(object sender, EventArgs e)
 	{
+		await batch.ExportDaeFilesAsync(progress =>
+		{
+		});
 	}
 
     void OnExportDaeClicked(object sender, EventArgs e)
     {
     }
-
 
     private void OnCounterClicked(object sender, EventArgs e)
 	{
