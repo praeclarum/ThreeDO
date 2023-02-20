@@ -216,12 +216,12 @@ public class ThreeDObject
                                 q.TB = int.Parse(parts[2]);
                                 q.TC = int.Parse(parts[3]);
                                 q.TD = int.Parse(parts[4]);
+                                o.Quads[qIndex] = q;
                             }
                         }
                         break;
                 }
             }
-            Console.WriteLine(line);
         }
         return obj;
     }
