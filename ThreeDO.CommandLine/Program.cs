@@ -18,10 +18,6 @@ var batch = new BatchConversion();
 
 batch.AddFiles(inputFiles);
 
-batch.OutputDirectory = Path.Combine(
-    Path.GetDirectoryName(inputFiles[0]) ?? string.Empty,
-    "output");
-
 await batch.ExportDaeFilesAsync(p => Console.WriteLine(p));
 
 

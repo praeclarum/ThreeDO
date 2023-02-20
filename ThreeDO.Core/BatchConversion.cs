@@ -28,7 +28,10 @@ namespace ThreeDO
             var fileTasks = Files.Select(async file =>
             {
                 var obj = await file.GetObjectAsync();
-                var outPath = Path.Join(_outputDirectory, Path.GetFileNameWithoutExtension(file.FilePath) + ".dae");
+                var outPath =
+                    string.IsNullOrEmpty(_outputDirectory) ?
+                    Path.ChangeExtension(file.FilePath, ".dae") :
+                    Path.Join(_outputDirectory, Path.GetFileNameWithoutExtension(file.FilePath) + ".dae");
                 await Task.Run(() =>
                 {
                     using var ow = new StreamWriter(outPath);
