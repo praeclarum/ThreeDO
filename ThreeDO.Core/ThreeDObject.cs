@@ -304,7 +304,7 @@ public class ThreeDObject
             writer.WriteLine($"          <float_array id=\"geometry{i}-positions-array\" count=\"{subobj.Vertices.Count * 3}\">");
             foreach (var v in subobj.Vertices)
             {
-                writer.WriteLine($"            {v.X} {v.Y} {v.Z}");
+                writer.WriteLine($"            {v.X} {-v.Y} {v.Z}");
             }
             writer.WriteLine($"          </float_array>");
             writer.WriteLine($"          <technique_common>");
@@ -350,7 +350,7 @@ public class ThreeDObject
             writer.WriteLine($"          <p>");
             foreach (var q in subobj.Quads)
             {
-                writer.WriteLine($"            {q.D} {q.TD} {q.C} {q.TC} {q.B} {q.TB} {q.A} {q.TA}");
+                writer.WriteLine($"            {q.A} {q.TA} {q.B} {q.TB} {q.C} {q.TC} {q.D} {q.TD}");
             }
             writer.WriteLine($"          </p>");
             writer.WriteLine($"        </polylist>");
