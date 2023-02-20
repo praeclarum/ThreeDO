@@ -9,23 +9,38 @@
             Padding="30,0"
             VerticalOptions="Center">
 
-            <Image
-                Source="dotnet_bot.png"
-                SemanticProperties.Description="Cute dot net bot waving hi to you!"
-                HeightRequest="200"
-                HorizontalOptions="Center" />
-
             <Label
-                Text="Hello, World!"
+                Text="3DO Tools"
                 SemanticProperties.HeadingLevel="Level1"
                 FontSize="32"
                 HorizontalOptions="Center" />
 
             <Label
-                Text="Welcome to .NET Multi-platform App UI"
+                Text="Load 3DO files and then export them."
                 SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
+                SemanticProperties.Description="Load 3DO files and then export them"
                 FontSize="18"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="LoadFiles"
+                Text="Load 3DOs"
+                SemanticProperties.Hint="Load 3DO Files to be converted"
+                Clicked="OnLoadClicked"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="ExportDae"
+                Text="Export DAE"
+                SemanticProperties.Hint="Export loaded files as DAE"
+                Clicked="OnExportDaeClicked"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="ExportGltf"
+                Text="Export GLTF"
+                SemanticProperties.Hint="Export loaded files as GLTF"
+                Clicked="OnExportGltfClicked"
                 HorizontalOptions="Center" />
 
             <Button

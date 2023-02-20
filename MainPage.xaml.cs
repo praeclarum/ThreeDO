@@ -9,7 +9,20 @@ public partial class MainPage : ContentPage
 		InitializeComponent();
 	}
 
-	private void OnCounterClicked(object sender, EventArgs e)
+    void OnLoadClicked(object sender, EventArgs e)
+    {
+    }
+
+    void OnExportGltfClicked(object sender, EventArgs e)
+	{
+	}
+
+    void OnExportDaeClicked(object sender, EventArgs e)
+    {
+    }
+
+
+    private void OnCounterClicked(object sender, EventArgs e)
 	{
 		count++;
 
