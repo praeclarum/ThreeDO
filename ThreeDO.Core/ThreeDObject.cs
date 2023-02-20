@@ -36,10 +36,12 @@ public class ThreeDObject
     public string Palette { get; set; } = "";
     public List<ThreeDSubobject> Objects { get; set; } = new ();
     public int ObjectCount => Objects.Count;
-    public int VertexCount => Objects.Sum(o => o.Vertices.Length);
+    public int VertexCount => Objects.Sum(o => o.Vertices.Count);
     public int PolygonCount => Objects.Sum(o => o.PolygonCount);
 
     public List<string> Textures { get; set; } = new ();
+
+    public override string ToString() => Name;
 
     public static Task<ThreeDObject> LoadFromFile(string filePath)
     {
@@ -49,6 +51,8 @@ public class ThreeDObject
             return Read(reader);
         });
     }
+
+    static readonly char[] WS = new[] { ' ', '\t' };
 
     public static ThreeDObject Read(TextReader reader)
     {
@@ -70,71 +74,152 @@ public class ThreeDObject
                 return line;
             }
         }
-        static string[] SplitLine(string line) => line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        static string[] SplitLine(string line) => line.Split(WS, StringSplitOptions.RemoveEmptyEntries);
         var obj = new ThreeDObject();
         var sobj = default(ThreeDSubobject);
         var state = ParseState.InHead;
         for (var line = ReadValidLine(); line != null; line = ReadValidLine())
         {
-            switch (state)
+            if (line.StartsWith("OBJECT") && !line.StartsWith("OBJECTS"))
             {
-                case ParseState.InHead:
-                    if (line.StartsWith("OBJECT "))
-                    {
-                        sobj = new ThreeDSubobject { Name = line.Substring(6).Trim().Replace("\"", ""), };
-                        obj.Objects.Add(sobj);
-                        state = ParseState.InObj;
-                    }
-                    else if (line.StartsWith("TEXTURES "))
-                    {
-                        state = ParseState.InTextures;
-                    }
-                    else if (line.StartsWith("3DONAME "))
-                    {
-                        obj.Name = SplitLine(line)[1];
-                    }
-                    else if (line.StartsWith("3DO "))
-                    {
-                    }
-                    else if (line.StartsWith("OBJECTS "))
-                    {
-                    }
-                    else if (line.StartsWith("VERTICES "))
-                    {
-                    }
-                    else if (line.StartsWith("POLYGONS "))
-                    {
-                    }
-                    else if (line.StartsWith("PALETTE "))
-                    {
-                        obj.Palette = SplitLine(line)[1];
-                    }
-                    else
-                    {
-                        throw new Exception($"Unexpected 3DO line: \"{line}\" {state}");
-                    }
-                    break;
-                case ParseState.InTextures:
-                    if (line.StartsWith("OBJECT "))
-                    {
-                        sobj = new ThreeDSubobject { Name = line.Substring(6).Trim().Replace("\"", ""), };
-                        obj.Objects.Add(sobj);
-                        state = ParseState.InObj;
-                    }
-                    else if (line.StartsWith("TEXTURE:"))
-                    {
-                        obj.Textures.Add(SplitLine(line)[1]);
-                    }
-                    else
-                    {
-                        throw new Exception($"Unexpected 3DO line: \"{line}\" {state}");
-                    }
-
-                    break;
-                case ParseState.InObj:
-                    throw new NotImplementedException();
-                case ParseState.InVerts:
-                    throw new NotImplementedException();
+                sobj = new ThreeDSubobject { Name = line.Substring(6).Trim().Replace("\"", ""), };
+                obj.Objects.Add(sobj);
+                state = ParseState.InObj;
+            }
+            else
+            {
+                switch (state)
+                {
+                    case ParseState.InHead:
+                        if (line.StartsWith("TEXTURES"))
+                        {
+                            state = ParseState.InTextures;
+                        }
+                        else if (line.StartsWith("3DONAME"))
+                        {
+                            obj.Name = SplitLine(line)[1];
+                        }
+                        else if (line.StartsWith("3DO"))
+                        {
+                        }
+                        else if (line.StartsWith("OBJECTS"))
+                        {
+                        }
+                        else if (line.StartsWith("VERTICES"))
+                        {
+                        }
+                        else if (line.StartsWith("POLYGONS"))
+                        {
+                        }
+                        else if (line.StartsWith("PALETTE"))
+                        {
+                            obj.Palette = SplitLine(line)[1];
+                        }
+                        else
+                        {
+                            throw new Exception($"Unexpected 3DO line: \"{line}\" {state}");
+                        }
+                        break;
+                    case ParseState.InTextures:
+                        if (line.StartsWith("TEXTURE:"))
+                        {
+                            obj.Textures.Add(SplitLine(line)[1]);
+                        }
+                        else
+                        {
+                            throw new Exception($"Unexpected 3DO line: \"{line}\" {state}");
+                        }
+                        break;
+                    case ParseState.InObj:
+                        if (line.StartsWith("TEXTURE"))
+                        {
+                            if (sobj is { } o)
+                            {
+                                o.TextureIndex = int.Parse(SplitLine(line)[1]);
+                            }
+                        }
+                        else if (line.StartsWith("VERTICES"))
+                        {
+                            state = ParseState.InVertices;
+                        }
+                        else
+                        {
+                            throw new Exception($"Unexpected 3DO line: \"{line}\" {state}");
+                        }
+                        break;
+                    case ParseState.InVertices:
+                        if (line.StartsWith("QUADS"))
+                        {
+                            state = ParseState.InQuads;
+                        }
+                        else
+                        {
+                            var parts = SplitLine(line);
+                            var v = new Vector3(float.Parse(parts[1]), float.Parse(parts[2]), float.Parse(parts[3]));
+                            if (sobj is { } o)
+                            {
+                                o.Vertices.Add(v);
+                            }
+                        }
+                        break;
+                    case ParseState.InQuads:
+                        if (line.StartsWith("TEXTURE VERTICES"))
+                        {
+                            state = ParseState.InTextureVertices;
+                        }
+                        else
+                        {
+                            var parts = SplitLine(line);
+                            var fill = parts[6] switch
+                            {
+                                "GOURTEX" => PolygonFill.GourTex,
+                                var x => throw new NotSupportedException($"Unknown fill {x}"),
+                            };
+                            var q = new Quad
+                            {
+                                A = int.Parse(parts[1]),
+                                B = int.Parse(parts[2]),
+                                C = int.Parse(parts[3]),
+                                D = int.Parse(parts[4]),
+                                Color = int.Parse(parts[5]),
+                                Fill = fill
+                            };
+                            if (sobj is { } o)
+                            {
+                                o.Quads.Add(q);
+                            }
+                        }
+                        break;
+                    case ParseState.InTextureVertices:
+                        if (line.StartsWith("TEXTURE QUADS"))
+                        {
+                            state = ParseState.InTextureQuads;
+                        }
+                        else
+                        {
+                            var parts = SplitLine(line);
+                            var v = new Vector2(float.Parse(parts[1]), float.Parse(parts[2]));
+                            if (sobj is { } o)
+                            {
+                                o.TextureVertices.Add(v);
+                            }
+                        }
+                        break;
+                    case ParseState.InTextureQuads:
+                        {
+                            var parts = SplitLine(line);
+                            var qIndex = int.Parse(parts[0].Substring(0, parts[0].Length - 1));
+                            if (sobj is { } o && 0 <= qIndex && qIndex < o.Quads.Count)
+                            {
+                                var q = o.Quads[qIndex];
+                                q.TA = int.Parse(parts[1]);
+                                q.TB = int.Parse(parts[2]);
+                                q.TC = int.Parse(parts[3]);
+                                q.TD = int.Parse(parts[4]);
+                            }
+                        }
+                        break;
+                }
             }
             Console.WriteLine(line);
         }
@@ -146,7 +231,10 @@ public class ThreeDObject
         InHead,
         InTextures,
         InObj,
-        InVerts
+        InVertices,
+        InQuads,
+        InTextureVertices,
+        InTextureQuads,
     }
 
     public void ExportDae(TextWriter writer)
@@ -157,16 +245,27 @@ public class ThreeDObject
 
 public struct Quad
 {
-    public int A;
-    public int B;
-    public int C;
-    public int D;
+    public int A, TA;
+    public int B, TB;
+    public int C, TC;
+    public int D, TD;
+    public int Color;
+    public PolygonFill Fill;
+}
+
+public enum PolygonFill
+{
+    GourTex,
 }
 
 public class ThreeDSubobject
 {
     public string Name { get; set; } = "";
-    public Vector3[] Vertices { get; set; } = Array.Empty<Vector3>();
-    public Quad[] Quads { get; set; } = Array.Empty<Quad>();
-    public int PolygonCount => Quads.Length;
+    public int TextureIndex { get; set; } = -1;
+    public bool HasTexture => TextureIndex >= 0;
+    public List<Vector3> Vertices { get; set; } = new();
+    public List<Vector2> TextureVertices { get; set; } = new();
+    public List<Quad> Quads { get; set; } = new();
+    public int PolygonCount => Quads.Count;
+    public override string ToString() => Name;
 }
