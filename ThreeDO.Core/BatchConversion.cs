@@ -36,6 +36,10 @@ namespace ThreeDO
                 {
                     using var ow = new StreamWriter(outPath);
                     obj.ExportDae(ow);
+                    foreach (var t in obj.Textures)
+                    {
+                        t.SavePngInDir(Path.GetDirectoryName(outPath)??_outputDirectory);
+                    }
                 });
                 p += dp;
                 progress?.Invoke(p);

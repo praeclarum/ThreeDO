@@ -35,7 +35,7 @@ public class ThreeDObject
 {
     public string Name { get; set; } = "";
     public string Palette { get; set; } = "";
-    public List<string> Textures { get; set; } = new ();
+    public List<Bitmap> Textures { get; set; } = new ();
     public List<ThreeDSubobject> Objects { get; set; } = new ();
 
     public int ObjectCount => Objects.Count;
@@ -48,14 +48,15 @@ public class ThreeDObject
     {
         return Task.Run(() =>
         {
-            using var reader = new StreamReader(filePath);
-            return Read(reader);
+            var absPath = Path.GetFullPath(filePath);
+            using var reader = new StreamReader(absPath);
+            return Read(reader, Path.GetDirectoryName(absPath) ?? "");
         });
     }
 
     static readonly char[] WS = new[] { ' ', '\t' };
 
-    public static ThreeDObject Read(TextReader reader)
+    public static ThreeDObject Read(TextReader reader, string assetDir)
     {
         string? ReadValidLine()
         {
@@ -144,7 +145,13 @@ public class ThreeDObject
                     case ParseState.InTextures:
                         if (line.StartsWith("TEXTURE:"))
                         {
-                            obj.Textures.Add(SplitLine(line)[1]);
+                            var textureName = SplitLine(line)[1];
+                            var texturePath = Path.Combine(assetDir, textureName);
+                            if (!File.Exists(texturePath))
+                            {
+                                Console.WriteLine($"Missing texture: {texturePath}");
+                            }
+                            obj.Textures.Add(Bitmap.FromFile(texturePath));
                         }
                         else
                         {
