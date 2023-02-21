@@ -103,7 +103,14 @@ namespace ThreeDO
 
             // Write PLTE chunk
             WriteChunk("PLTE", w => {
-                w.Write(palette.Data);
+                var colors = new byte[768];
+                var n = 768;
+                Array.Copy(palette.Data, colors, n);
+                for (var i = 0; i < n; i++)
+                {
+                    colors[i] *= 4;
+                }
+                w.Write(colors);
             });
 
             // Write IDAT chunk
