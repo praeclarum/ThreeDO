@@ -47,7 +47,7 @@ namespace ThreeDO
                     var palPath = SearchDirectories.FindFile(obj.Palette, fileDir);
                     if (palPath == null)
                         Warn($"Failed to find palette: {obj.Palette}");
-                    var pal = palPath is null ? new Palette() : Palette.LoadFromFile(palPath);
+                    var pal = palPath is null ? Palette.Default : Palette.LoadFromFile(palPath);
                     foreach (var texName in obj.Textures)
                     {
                         if (SearchDirectories.FindFile(texName, fileDir) is string bmPath)

@@ -12,6 +12,18 @@ namespace ThreeDO
             s.ReadExactly(pal.Data);
             return pal;
         }
+
+        public static Palette Default { get; }
+
+        static Palette()
+        {
+            var asm = typeof(Palette).Assembly;
+            var names = asm.GetManifestResourceNames();
+            using var s = asm.GetManifestResourceStream("ThreeDO.Core.DEFAULT.PAL");
+            var pal = new Palette();
+            s.ReadExactly(pal.Data);
+            Default = pal;
+        }
     }
 }
 
