@@ -27,8 +27,9 @@ namespace ThreeDO
             writer.WriteLine($"  <library_images>");
             for (var i = 0; i < obj.Textures.Count; i++)
             {
+                var pngName = Path.ChangeExtension(obj.Textures[i], ".png");
                 writer.WriteLine($"    <image id=\"image{i}\" name=\"{obj.Textures[i]}\">");
-                writer.WriteLine($"      <init_from>{obj.Textures[i]}</init_from>");
+                writer.WriteLine($"      <init_from>{pngName}</init_from>");
                 writer.WriteLine($"    </image>");
             }
             writer.WriteLine($"  </library_images>");
@@ -107,7 +108,15 @@ namespace ThreeDO
                 writer.WriteLine($"        <vertices id=\"geometry{i}-vertices\">");
                 writer.WriteLine($"          <input semantic=\"POSITION\" source=\"#geometry{i}-positions\"/>");
                 writer.WriteLine($"        </vertices>");
-                writer.WriteLine($"        <polylist count=\"{subobj.PolygonCount}\">");
+                writer.Write($"        <polylist count=\"{subobj.PolygonCount}\"");
+                if (subobj.HasTexture)
+                {
+                    writer.WriteLine($" material=\"material{subobj.TextureIndex}\">");
+                }
+                else
+                {
+                    writer.WriteLine($">");
+                }
                 writer.WriteLine($"          <input semantic=\"VERTEX\" source=\"#geometry{i}-vertices\" offset=\"0\"/>");
                 if (subobj.HasTexture)
                 {
@@ -163,7 +172,7 @@ namespace ThreeDO
                 {
                     writer.WriteLine($"          <bind_material>");
                     writer.WriteLine($"            <technique_common>");
-                    writer.WriteLine($"              <instance_material symbol=\"material{i}\" target=\"#material{i}\"/>");
+                    writer.WriteLine($"              <instance_material symbol=\"material{subobj.TextureIndex}\" target=\"#material{subobj.TextureIndex}\"/>");
                     writer.WriteLine($"            </technique_common>");
                     writer.WriteLine($"          </bind_material>");
                 }
