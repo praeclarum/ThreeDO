@@ -35,7 +35,7 @@ public class ThreeDObject
 {
     public string Name { get; set; } = "";
     public string Palette { get; set; } = "";
-    public List<Bitmap> Textures { get; set; } = new ();
+    public List<string> Textures { get; set; } = new ();
     public List<ThreeDSubobject> Objects { get; set; } = new ();
 
     public int ObjectCount => Objects.Count;
@@ -146,12 +146,7 @@ public class ThreeDObject
                         if (line.StartsWith("TEXTURE:"))
                         {
                             var textureName = SplitLine(line)[1];
-                            var texturePath = Path.Combine(assetDir, textureName);
-                            if (!File.Exists(texturePath))
-                            {
-                                Console.WriteLine($"Missing texture: {texturePath}");
-                            }
-                            obj.Textures.Add(Bitmap.FromFile(texturePath));
+                            obj.Textures.Add(textureName);
                         }
                         else
                         {

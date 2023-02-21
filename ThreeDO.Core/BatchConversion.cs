@@ -8,6 +8,8 @@ namespace ThreeDO
     {
         public ObservableCollection<BatchConversionFile> Files { get; } = new();
 
+        public SearchDirectories SearchDirectories { get; } = new();
+
         private string _outputDirectory = "";
         public string OutputDirectory { get => _outputDirectory; set => SetProperty(ref _outputDirectory, value); }
 
@@ -19,6 +21,11 @@ namespace ThreeDO
             }
         }
 
+        void Warn(string message)
+        {
+            Console.WriteLine($"WARNING: {message}");
+        }
+
         public async Task ExportDaeFilesAsync(Action<double>? progress)
         {
             if (Files.Count < 1)
@@ -27,6 +34,7 @@ namespace ThreeDO
             var dp = 1.0 / Files.Count;
             var fileTasks = Files.Select(async file =>
             {
+                var fileDir = Path.GetDirectoryName(file.FilePath) ?? "";
                 var obj = await file.GetObjectAsync();
                 var outPath =
                     string.IsNullOrEmpty(_outputDirectory) ?
@@ -36,9 +44,17 @@ namespace ThreeDO
                 {
                     using var ow = new StreamWriter(outPath);
                     obj.ExportDae(ow);
-                    foreach (var t in obj.Textures)
+                    var palPath = SearchDirectories.FindFile(obj.Palette, fileDir);
+                    if (palPath == null)
+                        Warn($"Failed to find palette: {obj.Palette}");
+                    var pal = palPath is null ? new Palette() : Palette.LoadFromFile(palPath);
+                    foreach (var texName in obj.Textures)
                     {
-                        t.SavePngInDir(Path.GetDirectoryName(outPath)??_outputDirectory);
+                        if (SearchDirectories.FindFile(texName, fileDir) is string bmPath)
+                        {
+                            var bm = Bitmap.FromFile(bmPath);
+                            bm.SavePngInDir(Path.GetDirectoryName(outPath) ?? _outputDirectory, pal);
+                        }
                     }
                 });
                 p += dp;

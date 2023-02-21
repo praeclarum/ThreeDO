@@ -49,7 +49,7 @@ namespace ThreeDO
             return new Bitmap { Name = name };
         }
 
-        public void SavePngInDir(string outputDir)
+        public void SavePngInDir(string outputDir, Palette palette)
         {
             var outputPath = Path.Combine(outputDir, Path.ChangeExtension(Name, ".png"));
             if (Width == 0 || Height == 0)// || File.Exists(outputPath))
@@ -102,9 +102,8 @@ namespace ThreeDO
             });
 
             // Write PLTE chunk
-            var palette = new byte[256 * 3];
             WriteChunk("PLTE", w => {
-                w.Write(palette);
+                w.Write(palette.Data);
             });
 
             // Write IDAT chunk
