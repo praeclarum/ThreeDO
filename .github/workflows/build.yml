@@ -25,4 +25,6 @@ jobs:
     - name: Build Command Line
       run: dotnet build -c Release ThreeDO.CommandLine\ThreeDO.CommandLine.csproj
     - name: Publish Command Line
-      run: dotnet publish -c Release -r win-x64 ThreeDO.CommandLine\ThreeDO.CommandLine.csproj
+      run: |
+        dotnet publish -c Release -r win-x64 ThreeDO.CommandLine\ThreeDO.CommandLine.csproj
+        dir ThreeDO.CommandLine\bin\Release\net7.0\win-x64\publish\
