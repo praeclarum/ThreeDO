@@ -44,16 +44,20 @@ namespace ThreeDO
                 {
                     using var ow = new StreamWriter(outPath);
                     obj.ExportDae(ow);
-                    var palPath = SearchDirectories.FindFile(obj.Palette, fileDir);
-                    if (palPath == null)
+                    var palData = SearchDirectories.ReadFile(obj.Palette, fileDir);
+                    if (palData == null)
                         Warn($"Failed to find palette: {obj.Palette}");
-                    var pal = palPath is null ? Palette.Default : Palette.LoadFromFile(palPath);
+                    var pal = palData is null ? Palette.Default : new Palette(palData);
                     foreach (var texName in obj.Textures)
                     {
-                        if (SearchDirectories.FindFile(texName, fileDir) is string bmPath)
+                        if (SearchDirectories.ReadFile(texName, fileDir) is byte[] bmData)
                         {
-                            var bm = Bitmap.FromFile(bmPath);
+                            var bm = Bitmap.FromData(texName, bmData);
                             bm.SavePngInDir(Path.GetDirectoryName(outPath) ?? _outputDirectory, pal);
+                        }
+                        else
+                        {
+                            Warn($"Failed to find texture: {texName}");
                         }
                     }
                 });

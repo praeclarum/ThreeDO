@@ -3,7 +3,17 @@ namespace ThreeDO
 {
     public class Palette
     {
-        public byte[] Data { get; set; } = new byte[256 * 3];
+        public byte[] Data { get; set; }
+
+        public Palette()
+        {
+            Data = new byte[256 * 3];
+        }
+
+        public Palette(byte[] data)
+        {
+            Data = data;
+        }
 
         public static Palette LoadFromFile(string filePath)
         {

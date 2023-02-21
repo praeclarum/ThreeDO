@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.IO.Hashing;
 using System.Runtime.Intrinsics.Arm;
 using System.Text;
+using System.Xml.Linq;
 
 using Crc32 = System.IO.Hashing.Crc32;
 
@@ -16,35 +17,46 @@ namespace ThreeDO
         public BitmapTransparency Transparency { get; set; }
         public byte[] Columns { get; set; } = Array.Empty<byte>();
 
+        public static Bitmap FromStream(string name, Stream stream)
+        {
+            using var reader = new BinaryReader(stream);
+            var magic = reader.ReadUInt32();
+            var sizeX = reader.ReadUInt16();
+            var sizeY = reader.ReadUInt16();
+            if (sizeX == 1 && sizeY != 1)
+                throw new NotSupportedException("Multiple BM not supported");
+            var idemX = reader.ReadUInt16();
+            var idemY = reader.ReadUInt16();
+            var transparent = (BitmapTransparency)reader.ReadByte();
+            var logSizeY = reader.ReadByte();
+            var compression = (BitmapCompression)reader.ReadUInt16();
+            if (compression != BitmapCompression.NotCompressed)
+                throw new NotSupportedException($"Bitmap compression: {compression} not supported");
+            var dataSize = reader.ReadInt32();
+            reader.ReadBytes(12);
+            return new Bitmap
+            {
+                Name = name,
+                Width = sizeX,
+                Height = sizeY,
+                Transparency = transparent,
+                Columns = reader.ReadBytes(dataSize),
+            };
+        }
+
+        public static Bitmap FromData(string name, byte[] data)
+        {
+            using var stream = new MemoryStream(data);
+            return FromStream(name, stream);
+        }
+
         public static Bitmap FromFile(string bmPath)
         {
             var name = Path.GetFileName(bmPath);
             if (File.Exists(bmPath))
             {
                 using var stream = new FileStream(bmPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                using var reader = new BinaryReader(stream);
-                var magic = reader.ReadUInt32();
-                var sizeX = reader.ReadUInt16();
-                var sizeY = reader.ReadUInt16();
-                if (sizeX == 1 && sizeY != 1)
-                    throw new NotSupportedException("Multiple BM not supported");
-                var idemX = reader.ReadUInt16();
-                var idemY = reader.ReadUInt16();
-                var transparent = (BitmapTransparency)reader.ReadByte();
-                var logSizeY = reader.ReadByte();
-                var compression = (BitmapCompression)reader.ReadUInt16();
-                if (compression != BitmapCompression.NotCompressed)
-                    throw new NotSupportedException($"Bitmap compression: {compression} not supported");
-                var dataSize = reader.ReadInt32();
-                reader.ReadBytes(12);
-                return new Bitmap
-                {
-                    Name = name,
-                    Width = sizeX,
-                    Height = sizeY,
-                    Transparency = transparent,
-                    Columns = reader.ReadBytes(dataSize),
-                };
+                return FromStream(name, stream);
             }
             return new Bitmap { Name = name };
         }
@@ -52,7 +64,7 @@ namespace ThreeDO
         public void SavePngInDir(string outputDir, Palette palette)
         {
             var outputPath = Path.Combine(outputDir, Path.ChangeExtension(Name, ".png"));
-            if (Width == 0 || Height == 0)// || File.Exists(outputPath))
+            if (Width == 0 || Height == 0 || File.Exists(outputPath))
             {
                 return;
             }
