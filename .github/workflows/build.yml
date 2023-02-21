@@ -24,3 +24,5 @@ jobs:
       run: dotnet restore
     - name: Build Command Line
       run: dotnet build -c Release ThreeDO.CommandLine\ThreeDO.CommandLine.csproj
+    - name: Publish Command Line
+      run: dotnet publish -c Release -r win-x64 ThreeDO.CommandLine\ThreeDO.CommandLine.csproj
