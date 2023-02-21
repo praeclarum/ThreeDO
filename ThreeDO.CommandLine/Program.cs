@@ -1,6 +1,6 @@
 ﻿using ThreeDO;
 
-Console.WriteLine("3DO Tools by Frank A. Krueger");
+Console.WriteLine("3DO Tool by Frank A. Krueger");
 
 var batch = new BatchConversion();
 
@@ -27,7 +27,7 @@ for (var i = 0; i < args.Length;) {
 
 if (batch.Files.Count == 0)
 {
-    Console.WriteLine("Usage: 3dotools <3do files>");
+    Console.WriteLine("Usage: 3dotool <3do files> -i <search directories>");
     return 1;
 }
 
