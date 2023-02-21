@@ -86,6 +86,26 @@ public class ThreeDObject
                 obj.Objects.Add(sobj);
                 state = ParseState.InObj;
             }
+            else if (line.StartsWith("TEXTURE VERTICES"))
+            {
+                state = ParseState.InTextureVertices;
+            }
+            else if (line.StartsWith("TEXTURE QUADS"))
+            {
+                state = ParseState.InTextureQuads;
+            }
+            else if (line.StartsWith("TEXTURE TRIANGLES"))
+            {
+                state = ParseState.InTextureTriangles;
+            }
+            else if (line.StartsWith("TRIANGLES"))
+            {
+                state = ParseState.InTriangles;
+            }
+            else if (line.StartsWith("QUADS"))
+            {
+                state = ParseState.InQuads;
+            }
             else
             {
                 switch (state)
@@ -148,13 +168,12 @@ public class ThreeDObject
                         }
                         break;
                     case ParseState.InVertices:
-                        if (line.StartsWith("QUADS"))
-                        {
-                            state = ParseState.InQuads;
-                        }
-                        else
                         {
                             var parts = SplitLine(line);
+                            if (parts.Length != 4)
+                            {
+                                throw new Exception($"Invalid vertex line: \"{line}\"");
+                            }
                             var v = new Vector3(float.Parse(parts[1]), float.Parse(parts[2]), float.Parse(parts[3]));
                             if (sobj is { } o)
                             {
@@ -163,18 +182,9 @@ public class ThreeDObject
                         }
                         break;
                     case ParseState.InQuads:
-                        if (line.StartsWith("TEXTURE VERTICES"))
-                        {
-                            state = ParseState.InTextureVertices;
-                        }
-                        else
                         {
                             var parts = SplitLine(line);
-                            var fill = parts[6] switch
-                            {
-                                "GOURTEX" => PolygonFill.GourTex,
-                                var x => throw new NotSupportedException($"Unknown fill {x}"),
-                            };
+                            var fill = ParseFill(parts[6]);
                             var q = new Quad
                             {
                                 A = int.Parse(parts[1]),
@@ -190,12 +200,25 @@ public class ThreeDObject
                             }
                         }
                         break;
-                    case ParseState.InTextureVertices:
-                        if (line.StartsWith("TEXTURE QUADS"))
+                    case ParseState.InTriangles:
                         {
-                            state = ParseState.InTextureQuads;
+                            var parts = SplitLine(line);
+                            var fill = ParseFill(parts[5]);
+                            var q = new Triangle
+                            {
+                                A = int.Parse(parts[1]),
+                                B = int.Parse(parts[2]),
+                                C = int.Parse(parts[3]),
+                                Color = int.Parse(parts[4]),
+                                Fill = fill
+                            };
+                            if (sobj is { } o)
+                            {
+                                o.Triangles.Add(q);
+                            }
                         }
-                        else
+                        break;
+                    case ParseState.InTextureVertices:
                         {
                             var parts = SplitLine(line);
                             var v = new Vector2(float.Parse(parts[1]), float.Parse(parts[2]));
@@ -220,10 +243,37 @@ public class ThreeDObject
                             }
                         }
                         break;
+                    case ParseState.InTextureTriangles:
+                        {
+                            var parts = SplitLine(line);
+                            var qIndex = int.Parse(parts[0].Substring(0, parts[0].Length - 1));
+                            if (sobj is { } o && 0 <= qIndex && qIndex < o.Triangles.Count)
+                            {
+                                var q = o.Triangles[qIndex];
+                                q.TA = int.Parse(parts[1]);
+                                q.TB = int.Parse(parts[2]);
+                                q.TC = int.Parse(parts[3]);
+                                o.Triangles[qIndex] = q;
+                            }
+                        }
+                        break;
                 }
             }
         }
         return obj;
+    }
+
+    static PolygonFill ParseFill(string fill)
+    {
+        return fill switch
+        {
+            "FLAT" => PolygonFill.Flat,
+            "GOURAUD" => PolygonFill.Gouraud,
+            "GOURTEX" => PolygonFill.GourTex,
+            "PLANE" => PolygonFill.Plane,
+            "TEXTURE" => PolygonFill.Texture,
+            var x => throw new NotSupportedException($"Unknown fill {x}"),
+        };
     }
 
     enum ParseState
@@ -232,9 +282,11 @@ public class ThreeDObject
         InTextures,
         InObj,
         InVertices,
-        InQuads,
         InTextureVertices,
+        InQuads,
         InTextureQuads,
+        InTriangles,
+        InTextureTriangles,
     }
 
     public void ExportDae(TextWriter writer)
@@ -341,16 +393,24 @@ public class ThreeDObject
             {
                 writer.WriteLine($"          <input semantic=\"TEXCOORD\" source=\"#geometry{i}-map-0\" offset=\"1\" set=\"0\"/>");
             }
-            writer.WriteLine($"          <vcount>");
-            for (var j = 0; j < subobj.PolygonCount; j++)
+            writer.Write($"          <vcount>");
+            for (var j = 0; j < subobj.Quads.Count; j++)
             {
-                writer.WriteLine($"            4");
+                writer.Write($"4 ");
+            }
+            for (var j = 0; j < subobj.Triangles.Count; j++)
+            {
+                writer.WriteLine($"3 ");
             }
             writer.WriteLine($"          </vcount>");
             writer.WriteLine($"          <p>");
             foreach (var q in subobj.Quads)
             {
                 writer.WriteLine($"            {q.A} {q.TA} {q.B} {q.TB} {q.C} {q.TC} {q.D} {q.TD}");
+            }
+            foreach (var q in subobj.Triangles)
+            {
+                writer.WriteLine($"            {q.A} {q.TA} {q.B} {q.TB} {q.C} {q.TC}");
             }
             writer.WriteLine($"          </p>");
             writer.WriteLine($"        </polylist>");
@@ -395,9 +455,22 @@ public struct Quad
     public PolygonFill Fill;
 }
 
+public struct Triangle
+{
+    public int A, TA;
+    public int B, TB;
+    public int C, TC;
+    public int Color;
+    public PolygonFill Fill;
+}
+
 public enum PolygonFill
 {
+    Flat,
+    Gouraud,
     GourTex,
+    Plane,
+    Texture,
 }
 
 public class ThreeDSubobject
@@ -408,6 +481,7 @@ public class ThreeDSubobject
     public List<Vector3> Vertices { get; set; } = new();
     public List<Vector2> TextureVertices { get; set; } = new();
     public List<Quad> Quads { get; set; } = new();
-    public int PolygonCount => Quads.Count;
+    public List<Triangle> Triangles { get; set; } = new();
+    public int PolygonCount => Quads.Count + Triangles.Count;
     public override string ToString() => Name;
 }
