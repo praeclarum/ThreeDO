@@ -126,12 +126,14 @@
                 HasUnevenRows="True"
                 SelectionMode="Single"
                 Grid.Row="1"
-                ItemsSource="{Binding Path=Files}">
+                ItemsSource="{Binding Path=Files}"
+                BackgroundColor="#181818">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
                             <Grid ColumnSpacing="11" Padding="11,11">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
@@ -139,22 +141,29 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
+                                <GraphicsView
+                                    Drawable="{Binding Path=ThumbnailDrawable}"
+                                    WidthRequest="44"
+                                    HeightRequest="44"
+                                    Grid.Column="0"
+                                    BackgroundColor="Transparent"/>
                                 <Label
                                     Padding="11,0"
                                     VerticalOptions="Center"
+                                    Grid.Column="1"
                                     Text="{Binding FileName}"
                                     FontSize="Body" />
                                 <Label
                                     Padding="11,0"
                                     VerticalOptions="Center"
-                                    Grid.Column="1"
+                                    Grid.Column="2"
                                     Text="{Binding ExportStatus}"
                                     FontSize="Small" />
                                 <Button
                                     Text="REM"
                                     Clicked="OnFileDeleteClicked"
                                     MaximumWidthRequest="44"
-                                    Grid.Column="2"
+                                    Grid.Column="3"
                                     Padding="3,3"
                                     BackgroundColor="Gray"
                                     TextColor="White"

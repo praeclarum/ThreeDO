@@ -78,7 +78,6 @@ namespace ThreeDO
             }
         }
 
-
         public void AddFiles(string[] filePaths)
         {
             foreach (var filePath in filePaths)
@@ -104,7 +103,7 @@ namespace ThreeDO
             var fileTasks = Files.Select(async file =>
             {
                 var fileDir = Path.GetDirectoryName(file.FilePath) ?? "";
-                var obj = await file.GetObjectAsync();
+                var obj = file.Object;
                 var outPath =
                     string.IsNullOrEmpty(_outputDirectory) ?
                     Path.ChangeExtension(file.FilePath, ".dae") :
@@ -173,15 +172,29 @@ namespace ThreeDO
         public string FileName => Path.GetFileName(FilePath);
 
         ExportStatus exportStatus = ExportStatus.Queued;
+        private object? _thumbnailDrawable;
+
         public ExportStatus ExportStatus { get => exportStatus; set => SetProperty(ref exportStatus, value); }
 
-        readonly Task<ThreeDObject> objTask;
-        public Task<ThreeDObject> GetObjectAsync() => objTask;
+        readonly Lazy<ThreeDObject> obj;
+        public ThreeDObject Object => obj.Value;
+
+        public object? ThumbnailDrawable { get => _thumbnailDrawable; set => SetProperty(ref _thumbnailDrawable, value); }
 
         public BatchConversionFile(string filePath)
         {
             FilePath = filePath;
-            objTask = Task.Run(() => ThreeDObject.LoadFromFile(filePath));
+            obj = new Lazy<ThreeDObject>(() =>
+            {
+                try
+                {
+                    return ThreeDObject.LoadFromFile(filePath);
+                }
+                catch
+                {
+                    return new ThreeDObject();
+                }
+            });
         }
     }
 

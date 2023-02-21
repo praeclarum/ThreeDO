@@ -44,15 +44,16 @@ public class ThreeDObject
 
     public override string ToString() => Name;
 
-    public static Task<ThreeDObject> LoadFromFile(string filePath)
+    public static ThreeDObject LoadFromFile(string filePath)
     {
-        return Task.Run(() =>
-        {
-            var absPath = Path.GetFullPath(filePath);
-            using var reader = new StreamReader(absPath);
-            return Read(reader, Path.GetDirectoryName(absPath) ?? "");
-        });
+        var absPath = Path.GetFullPath(filePath);
+        using var reader = new StreamReader(absPath);
+        return Read(reader, Path.GetDirectoryName(absPath) ?? "");
     }
+
+    public Vector3 Min => Objects.Count > 0 ? Objects.Aggregate(Vector3.Zero, (a, x) => Vector3.Min(a, x.Min)) : Vector3.Zero;
+    public Vector3 Max => Objects.Count > 0 ? Objects.Aggregate(Vector3.Zero, (a, x) => Vector3.Max(a, x.Max)) : Vector3.Zero;
+    public Vector3 Size => Max - Min;
 
     static readonly char[] WS = new[] { ' ', '\t' };
 
@@ -348,6 +349,9 @@ public class ThreeDSubobject
     public bool HasTexture => TextureIndex >= 0;
     public int PolygonCount => Quads.Count + Triangles.Count;
     public override string ToString() => Name;
+
+    public Vector3 Min => Vertices.Count > 0 ? Vertices.Aggregate(Vector3.Zero, (a, x) => Vector3.Min(a, x)) : Vector3.Zero;
+    public Vector3 Max => Vertices.Count > 0 ? Vertices.Aggregate(Vector3.Zero, (a, x) => Vector3.Max(a, x)) : Vector3.Zero;
 
     public ThreeDSubobject UnshareVertices()
     {
