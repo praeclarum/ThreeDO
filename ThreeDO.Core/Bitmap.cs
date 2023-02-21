@@ -96,7 +96,7 @@ namespace ThreeDO
                 w.Write(Hton((uint)Height));
                 w.Write((byte)8); // Bit depth
                 w.Write((byte)3); // 3 == palette index
-                w.Write((byte)0); // 0 == defalte compression
+                w.Write((byte)0); // 0 == deflate compression
                 w.Write((byte)0); // 0 == no filter
                 w.Write((byte)0); // 0 == no interlace
             });
@@ -108,10 +108,21 @@ namespace ThreeDO
 
             // Write IDAT chunk
             var idat = new byte[(Width + 1) * Height];
-            byte[] idatDeflated; 
+            for (var y = 0; y < Height; y++)
+            {
+                for (var x = 0; x < Width; x++)
+                {
+                    var idatIndex = y * (Width + 1) + x + 1;
+                    var bmIndex = x * Height + (Height - 1 - y);
+                    idat[idatIndex] = Columns[bmIndex];
+                }
+            }
+            
+            byte[] idatDeflated;
             {
                 using var deflateMem = new MemoryStream();
-                using var deflateStream = new System.IO.Compression.DeflateStream(deflateMem, System.IO.Compression.CompressionLevel.Optimal, true);
+                using var deflateStream = new System.IO.Compression.ZLibStream(deflateMem, System.IO.Compression.CompressionLevel.Optimal, true);
+                deflateStream.Write(idat);
                 deflateStream.Flush();
                 idatDeflated = deflateMem.ToArray();
             }
