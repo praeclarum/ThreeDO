@@ -2,9 +2,21 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ThreeDO.MainPage"
-             Title="3DO Tools">
+             Title="3DO Converter">
     <ContentPage.Resources>
-        <Style x:Key="DFButton" TargetType="Button">
+        <Style x:Key="SafeButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#FFEECC" />
+            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="18" />
+        </Style>
+        <Style x:Key="DangerousButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#FFAAAA" />
+            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="18" />
+        </Style>
+        <Style x:Key="ExportButton" TargetType="Button">
             <Setter Property="BackgroundColor" Value="#CCFFCC" />
             <Setter Property="TextColor" Value="Black" />
             <Setter Property="FontAttributes" Value="Bold" />
@@ -12,7 +24,7 @@
         </Style>
     </ContentPage.Resources>
     <Grid
-        >
+        BackgroundColor="#333">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
@@ -27,62 +39,16 @@
             Grid.Row="0"
             Grid.Column="0"
             Spacing="25"
-            Padding="30,0"
+            Padding="22,22"
             >
-
-            <Label
-                Text="3DO Tools"
-                SemanticProperties.HeadingLevel="Level1"
-                FontSize="32"
-                HorizontalOptions="Center"
-                Grid.Row="0"
-                Grid.Column="0"
-                Grid.RowSpan="1"/>
-
-            <Label
-                Text="Load 3DO files and then export them."
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Load 3DO files and then export them"
-                FontSize="18"
-                Grid.Row="1"
-                Grid.Column="0"
-                Grid.RowSpan="3"/>
-
-
-            <Button
-                x:Name="LoadFiles"
-                Text="Load 3DOs"
-                SemanticProperties.Hint="Load 3DO Files to be converted"
-                Clicked="OnLoadClicked"
-                HorizontalOptions="Center"
-                Style="{StaticResource DFButton}"/>
-
-            <Button
-                x:Name="ExportDae"
-                IsEnabled="{Binding CanExport}"
-                Text="Export DAE"
-                SemanticProperties.Hint="Export loaded files as DAE"
-                Clicked="OnExportDaeClicked"
-                HorizontalOptions="Center"
-                Style="{StaticResource DFButton}"/>
-
-            <Button
-                x:Name="ExportGltf"
-                IsVisible="false"
-                Text="Export GLTF"
-                SemanticProperties.Hint="Export loaded files as GLTF"
-                Clicked="OnExportGltfClicked"
-                HorizontalOptions="Center"
-                Style="{StaticResource DFButton}"/>
-
 
             <Label Text="Texture Directories" FontSize="Large"/>
             <Label Text="3DOs sometimes include references to textures from other directories and/or GOBs. List those directories here so that textures can be found during conversion." LineBreakMode="WordWrap" FontSize="Small"/>
             <Button
-                Text="Add Directory"
+                Text="Add Textures Directory"
                 Clicked="OnAddDirectoryClicked"
                 HorizontalOptions="Start"
-                Style="{StaticResource DFButton}"/>
+                Style="{StaticResource SafeButton}"/>
             <ListView
                 Grid.Row="0"
                 Grid.Column="1"
@@ -107,7 +73,7 @@
                                     Text="{Binding .}"
                                     FontSize="Small" />
                                 <Button
-                                    Text="DEL"
+                                    Text="REM"
                                     Clicked="OnSearchDirDeleteClicked"
                                     MaximumWidthRequest="44"
                                     Grid.Column="1"
@@ -122,43 +88,107 @@
             </ListView>
 
         </VerticalStackLayout>
-        <ListView
+        <Grid
             Grid.Row="0"
             Grid.Column="1"
-            MinimumWidthRequest="100"
-            HasUnevenRows="True"
-            SelectionMode="Single"
-            ItemsSource="{Binding Path=Files}">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <ViewCell>
-                        <Grid ColumnSpacing="11" Padding="11,11">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <Label
-                                Padding="11,0"
-                                VerticalOptions="Center"
-                                Text="{Binding FileName}"
-                                FontSize="Body" />
-                            <Button
-                                Text="DEL"
-                                Clicked="OnFileDeleteClicked"
-                                MaximumWidthRequest="44"
-                                Grid.Column="1"
-                                Padding="3,3"
-                                BackgroundColor="Gray"
-                                TextColor="White"
-                                />
-                        </Grid>
-                    </ViewCell>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            Padding="22,22">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid Padding="11,11" Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button
+                    Text="+ Add 3DOs to Convert"
+                    SemanticProperties.Hint="Load 3DO Files to be converted"
+                    Clicked="OnLoadClicked"
+                    HorizontalOptions="Start"
+                    Style="{StaticResource SafeButton}"
+                    Grid.Column="0"/>
+
+                <Button
+                    Text="- Remove All"
+                    SemanticProperties.Hint="Remove all 3DO Files to be converted"
+                    Clicked="OnRemoveAllFilesClicked"
+                    HorizontalOptions="End"
+                    Style="{StaticResource DangerousButton}"
+                    Grid.Column="2"/>
+
+
+            </Grid>
+            <ListView
+                MinimumWidthRequest="100"
+                HasUnevenRows="True"
+                SelectionMode="Single"
+                Grid.Row="1"
+                ItemsSource="{Binding Path=Files}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <Grid ColumnSpacing="11" Padding="11,11">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Label
+                                    Padding="11,0"
+                                    VerticalOptions="Center"
+                                    Text="{Binding FileName}"
+                                    FontSize="Body" />
+                                <Label
+                                    Padding="11,0"
+                                    VerticalOptions="Center"
+                                    Grid.Column="1"
+                                    Text="{Binding ExportStatus}"
+                                    FontSize="Small" />
+                                <Button
+                                    Text="REM"
+                                    Clicked="OnFileDeleteClicked"
+                                    MaximumWidthRequest="44"
+                                    Grid.Column="2"
+                                    Padding="3,3"
+                                    BackgroundColor="Gray"
+                                    TextColor="White"
+                                    />
+                            </Grid>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <Grid
+                Padding="22,22"
+                Grid.Row="2"
+                >
+                <Button
+                    x:Name="ExportDae"
+                    IsEnabled="{Binding CanExport}"
+                    Text="Export DAE"
+                    SemanticProperties.Hint="Export loaded files as DAE"
+                    Clicked="OnExportDaeClicked"
+                    HorizontalOptions="FillAndExpand"
+                    Style="{StaticResource ExportButton}"/>
+
+                <Button
+                    x:Name="ExportGltf"
+                    IsVisible="false"
+                    Text="Export GLTF"
+                    SemanticProperties.Hint="Export loaded files as GLTF"
+                    Clicked="OnExportGltfClicked"
+                    HorizontalOptions="FillAndExpand"
+                    Style="{StaticResource ExportButton}"/>
+
+
+            </Grid>
+        </Grid>
         <!--<Border
             Grid.Row="0"
             Grid.Column="2"

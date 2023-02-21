@@ -44,6 +44,12 @@ public partial class MainPage : ContentPage
 		SaveSettings();
     }
 
+    void OnRemoveAllFilesClicked(object sender, EventArgs e)
+    {
+        batch.Files.Clear();
+        SaveSettings();
+    }
+
     void OnFileDeleteClicked(object sender, EventArgs e)
     {
         if ((sender as Button)?.BindingContext is BatchConversionFile file)

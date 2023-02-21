@@ -111,6 +111,7 @@ namespace ThreeDO
                     Path.Join(_outputDirectory, Path.GetFileNameWithoutExtension(file.FilePath) + ".dae");
                 await Task.Run(() =>
                 {
+                    file.ExportStatus = ExportStatus.Exporting;
                     using var ow = new StreamWriter(outPath);
                     obj.ExportDae(ow);
                     var palData = SearchDirectories.ReadFile(obj.Palette, fileDir);
@@ -129,6 +130,7 @@ namespace ThreeDO
                             Warn($"Failed to find texture: {texName}");
                         }
                     }
+                    file.ExportStatus = ExportStatus.Exported;
                 });
                 p += dp;
                 ExportProgress = p;
@@ -170,6 +172,9 @@ namespace ThreeDO
         public string FilePath { get; }
         public string FileName => Path.GetFileName(FilePath);
 
+        ExportStatus exportStatus = ExportStatus.Queued;
+        public ExportStatus ExportStatus { get => exportStatus; set => SetProperty(ref exportStatus, value); }
+
         readonly Task<ThreeDObject> objTask;
         public Task<ThreeDObject> GetObjectAsync() => objTask;
 
@@ -178,6 +183,12 @@ namespace ThreeDO
             FilePath = filePath;
             objTask = Task.Run(() => ThreeDObject.LoadFromFile(filePath));
         }
+    }
+
+    public enum ExportStatus {
+        Queued,
+        Exporting,
+        Exported,
     }
 }
 

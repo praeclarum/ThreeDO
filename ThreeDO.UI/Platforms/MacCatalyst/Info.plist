@@ -63,5 +63,7 @@
 	<string>10001</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
+	<key>CFBundleDisplayName</key>
+	<string>3DO Converter</string>
 </dict>
 </plist>
