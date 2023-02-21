@@ -35,12 +35,12 @@ public class ThreeDObject
 {
     public string Name { get; set; } = "";
     public string Palette { get; set; } = "";
+    public List<string> Textures { get; set; } = new ();
     public List<ThreeDSubobject> Objects { get; set; } = new ();
+
     public int ObjectCount => Objects.Count;
     public int VertexCount => Objects.Sum(o => o.Vertices.Count);
     public int PolygonCount => Objects.Sum(o => o.PolygonCount);
-
-    public List<string> Textures { get; set; } = new ();
 
     public override string ToString() => Name;
 
@@ -289,6 +289,21 @@ public class ThreeDObject
         InTriangles,
         InTextureTriangles,
     }
+
+    public ThreeDObject UnshareVertices()
+    {
+        var newObj = new ThreeDObject
+        {
+            Name = this.Name,
+            Palette = this.Palette,
+            Textures = this.Textures.ToList(),
+        };
+        foreach (var o in Objects)
+        {
+            newObj.Objects.Add(o.UnshareVertices());
+        }
+        return newObj;
+    }
 }
 
 public struct Quad
@@ -323,11 +338,84 @@ public class ThreeDSubobject
 {
     public string Name { get; set; } = "";
     public int TextureIndex { get; set; } = -1;
-    public bool HasTexture => TextureIndex >= 0;
     public List<Vector3> Vertices { get; set; } = new();
     public List<Vector2> TextureVertices { get; set; } = new();
     public List<Quad> Quads { get; set; } = new();
     public List<Triangle> Triangles { get; set; } = new();
+
+    public bool HasTexture => TextureIndex >= 0;
     public int PolygonCount => Quads.Count + Triangles.Count;
     public override string ToString() => Name;
+
+    public ThreeDSubobject UnshareVertices()
+    {
+        var newObj = new ThreeDSubobject
+        {
+            Name = this.Name,
+            TextureIndex = this.TextureIndex,
+        };
+        var newVerts = new List<Vector3>(Quads.Count*4 + Triangles.Count*3);
+        var newTexVerts = new List<Vector2>(Quads.Count*4 + Triangles.Count*3);
+        foreach (var p in Quads)
+        {
+            var vi = newVerts.Count;
+            var tvi = newTexVerts.Count;
+            newVerts.Add(Vertices[p.A]);
+            newVerts.Add(Vertices[p.B]);
+            newVerts.Add(Vertices[p.C]);
+            newVerts.Add(Vertices[p.D]);
+            if (HasTexture
+                && p.TA >= 0 && p.TB >= 0 && p.TC >= 0 && p.TD >= 0
+                && p.TA < TextureVertices.Count && p.TB < TextureVertices.Count && p.TC < TextureVertices.Count && p.TD < TextureVertices.Count)
+            {
+                newTexVerts.Add(TextureVertices[p.TA]);
+                newTexVerts.Add(TextureVertices[p.TB]);
+                newTexVerts.Add(TextureVertices[p.TC]);
+                newTexVerts.Add(TextureVertices[p.TD]);
+            }
+            newObj.Quads.Add(new Quad
+            {
+                A = vi,
+                TA = tvi,
+                B = vi+1,
+                TB = tvi+1,
+                C = vi+2,
+                TC = tvi+2,
+                D = vi+3,
+                TD = tvi+3,
+                Color = p.Color,
+                Fill = p.Fill,
+            });
+        }
+        foreach (var p in Triangles)
+        {
+            var vi = newVerts.Count;
+            var tvi = newTexVerts.Count;
+            newVerts.Add(Vertices[p.A]);
+            newVerts.Add(Vertices[p.B]);
+            newVerts.Add(Vertices[p.C]);
+            if (HasTexture
+                && p.TA >= 0 && p.TB >= 0 && p.TC >= 0
+                && p.TA < TextureVertices.Count && p.TB < TextureVertices.Count && p.TC < TextureVertices.Count)
+            {
+                newTexVerts.Add(TextureVertices[p.TA]);
+                newTexVerts.Add(TextureVertices[p.TB]);
+                newTexVerts.Add(TextureVertices[p.TC]);
+            }
+            newObj.Triangles.Add(new Triangle
+            {
+                A = vi,
+                TA = tvi,
+                B = vi+1,
+                TB = tvi+1,
+                C = vi+2,
+                TC = tvi+2,
+                Color = p.Color,
+                Fill = p.Fill,
+            });            
+        }
+        newObj.Vertices = newVerts;
+        newObj.TextureVertices = newTexVerts;
+        return newObj;
+    }
 }

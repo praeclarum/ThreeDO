@@ -10,6 +10,9 @@ namespace ThreeDO
             var createdTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
             var icult = CultureInfo.InvariantCulture;
 
+            // DAE works best when the vertices do not share normals
+            obj = obj.UnshareVertices();
+
             writer.WriteLine($"<?xml version=\"1.0\" encoding=\"utf-8\"?>");
             writer.WriteLine($"<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">");
             writer.WriteLine($"  <asset>");
