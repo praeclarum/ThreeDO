@@ -59,5 +59,9 @@
 			</dict>
 		</dict>
 	</array>
+	<key>CFBundleVersion</key>
+	<string>10001</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
 </dict>
 </plist>

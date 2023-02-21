@@ -8,9 +8,7 @@ namespace ThreeDO.Core
     {
         readonly ConcurrentDictionary<string, byte[]> entries = new ();
 
-        public Gob()
-        {
-        }
+        public IEnumerable<(string, byte[])> Entries => entries.Select(x => (x.Key, x.Value));
 
         public static Gob LoadFromFile(string gobPath)
         {
@@ -41,6 +39,18 @@ namespace ThreeDO.Core
             if (entries.TryGetValue(key, out var d))
                 return d;
             return null;
+        }
+
+        static readonly ConcurrentDictionary<string, Gob> gobs = new();
+
+        public static Gob GetGob(string gobPath)
+        {
+            var key = gobPath;
+            if (gobs.TryGetValue(gobPath, out var g))
+                return g;
+            g = Gob.LoadFromFile(gobPath);
+            gobs.TryAdd(key, g);
+            return g;
         }
     }
 }

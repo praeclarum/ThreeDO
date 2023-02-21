@@ -31,32 +31,32 @@ namespace ThreeDO
                 var gobPaths = Directory.GetFiles(d, "*.gob", SearchOption.AllDirectories);
                 foreach (var gp in gobPaths)
                 {
-                    if (GetGob(gp).ReadFile(name) is byte[] data)
+                    try
                     {
-                        return data;
+                        if (Gob.GetGob(gp).ReadFile(name) is byte[] data)
+                        {
+                            return data;
+                        }
+                    }
+                    catch
+                    {
                     }
                 }
             }
             foreach (var gp in GobPaths)
             {
-                if (GetGob(gp).ReadFile(name) is byte[] data)
+                try
                 {
-                    return data;
+                    if (Gob.GetGob(gp).ReadFile(name) is byte[] data)
+                    {
+                        return data;
+                    }
+                }
+                catch
+                {
                 }
             }
             return null;
-        }
-
-        static readonly ConcurrentDictionary<string, Gob> gobs = new();
-
-        static Gob GetGob(string gobPath)
-        {
-            var key = gobPath;
-            if (gobs.TryGetValue(gobPath, out var g))
-                return g;
-            g = Gob.LoadFromFile(gobPath);
-            gobs.TryAdd(key, g);
-            return g;
         }
     }
 }

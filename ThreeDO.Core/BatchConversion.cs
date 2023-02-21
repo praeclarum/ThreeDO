@@ -2,6 +2,8 @@
 
 using MvvmHelpers;
 
+using ThreeDO.Core;
+
 namespace ThreeDO
 {
     public class BatchConversion : ObservableObject
@@ -9,6 +11,32 @@ namespace ThreeDO
         public ObservableCollection<BatchConversionFile> Files { get; } = new();
 
         public SearchDirectories SearchDirectories { get; } = new();
+
+        public BatchConversion()
+        {
+            Files.CollectionChanged += (s, e) =>
+            {
+                OnPropertyChanged(nameof(CanExport));
+            };
+            SearchDirectories.GobPaths.CollectionChanged += (s, e) =>
+            {
+                OnPropertyChanged(nameof(CanExport));
+            };
+        }
+
+        bool isExporting;
+        public bool IsExporting
+        {
+            get => isExporting; set
+            {
+                SetProperty(ref isExporting, value);
+                OnPropertyChanged(nameof(CanExport));
+            }
+        }
+        public bool CanExport => !IsExporting && Files.Count > 0;
+
+        double exportProgress;
+        public double ExportProgress { get => exportProgress; set => SetProperty(ref exportProgress, value); }
 
         private string _outputDirectory = "";
         public string OutputDirectory { get => _outputDirectory; set => SetProperty(ref _outputDirectory, value); }
@@ -24,6 +52,32 @@ namespace ThreeDO
                     yield return d;
             }
         }
+        public IEnumerable<string> ObjectFileReferences
+        {
+            get
+            {
+                foreach (var f in Files)
+                    yield return f.FilePath;
+                foreach (var gp in SearchDirectories.GobPaths)
+                {
+                    Gob g;
+                    try
+                    {
+                        g = Gob.GetGob(gp);
+                    }
+                    catch
+                    {
+                        g = new Gob();
+                    }
+                    foreach (var (e, d) in g.Entries)
+                    {
+                        if (e.EndsWith(".3do"))
+                            yield return e;
+                    }
+                }
+            }
+        }
+
 
         public void AddFiles(string[] filePaths)
         {
@@ -43,6 +97,8 @@ namespace ThreeDO
         {
             if (Files.Count < 1)
                 return;
+            ExportProgress = 0;
+            IsExporting = true;
             var p = 0.0;
             var dp = 1.0 / Files.Count;
             var fileTasks = Files.Select(async file =>
@@ -75,9 +131,11 @@ namespace ThreeDO
                     }
                 });
                 p += dp;
+                ExportProgress = p;
                 progress?.Invoke(p);
             }).ToArray();
             await Task.WhenAll(fileTasks);
+            IsExporting = false;
         }
 
         public void AddFilePaths(string[] filePaths)
@@ -110,6 +168,7 @@ namespace ThreeDO
     public class BatchConversionFile : ObservableObject
     {
         public string FilePath { get; }
+        public string FileName => Path.GetFileName(FilePath);
 
         readonly Task<ThreeDObject> objTask;
         public Task<ThreeDObject> GetObjectAsync() => objTask;

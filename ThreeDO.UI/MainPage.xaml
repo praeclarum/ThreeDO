@@ -3,88 +3,168 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ThreeDO.MainPage"
              Title="3DO Tools">
+    <ContentPage.Resources>
+        <Style x:Key="DFButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#CCFFCC" />
+            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="18" />
+        </Style>
+    </ContentPage.Resources>
     <Grid
-        BackgroundColor="Aquamarine">
+        >
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="*" />
+            <!--<ColumnDefinition Width="2*" />-->
         </Grid.ColumnDefinitions>
 
 
-        <ScrollView
+        <VerticalStackLayout
             Grid.Row="0"
             Grid.Column="0"
-            BackgroundColor="DarkMagenta">
-            <VerticalStackLayout
-                Spacing="25"
-                Padding="30,0"
-                BackgroundColor="Bisque">
+            Spacing="25"
+            Padding="30,0"
+            >
 
-                <Label
-                    Text="3DO Tools"
-                    SemanticProperties.HeadingLevel="Level1"
-                    FontSize="32"
-                    HorizontalOptions="Center"
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    Grid.RowSpan="1"/>
+            <Label
+                Text="3DO Tools"
+                SemanticProperties.HeadingLevel="Level1"
+                FontSize="32"
+                HorizontalOptions="Center"
+                Grid.Row="0"
+                Grid.Column="0"
+                Grid.RowSpan="1"/>
 
-                <Label
-                    Text="Load 3DO files and then export them."
-                    SemanticProperties.HeadingLevel="Level2"
-                    SemanticProperties.Description="Load 3DO files and then export them"
-                    FontSize="18"
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    Grid.RowSpan="3"/>
+            <Label
+                Text="Load 3DO files and then export them."
+                SemanticProperties.HeadingLevel="Level2"
+                SemanticProperties.Description="Load 3DO files and then export them"
+                FontSize="18"
+                Grid.Row="1"
+                Grid.Column="0"
+                Grid.RowSpan="3"/>
 
 
-                <Button
-                    x:Name="LoadFiles"
-                    Text="Load 3DOs"
-                    SemanticProperties.Hint="Load 3DO Files to be converted"
-                    Clicked="OnLoadClicked"
-                    HorizontalOptions="Center" />
+            <Button
+                x:Name="LoadFiles"
+                Text="Load 3DOs"
+                SemanticProperties.Hint="Load 3DO Files to be converted"
+                Clicked="OnLoadClicked"
+                HorizontalOptions="Center"
+                Style="{StaticResource DFButton}"/>
 
-                <Button
-                    x:Name="ExportDae"
-                    Text="Export DAE"
-                    SemanticProperties.Hint="Export loaded files as DAE"
-                    Clicked="OnExportDaeClicked"
-                    HorizontalOptions="Center" />
+            <Button
+                x:Name="ExportDae"
+                IsEnabled="{Binding CanExport}"
+                Text="Export DAE"
+                SemanticProperties.Hint="Export loaded files as DAE"
+                Clicked="OnExportDaeClicked"
+                HorizontalOptions="Center"
+                Style="{StaticResource DFButton}"/>
 
-                <Button
-                    x:Name="ExportGltf"
-                    Text="Export GLTF"
-                    SemanticProperties.Hint="Export loaded files as GLTF"
-                    Clicked="OnExportGltfClicked"
-                    HorizontalOptions="Center" />
+            <Button
+                x:Name="ExportGltf"
+                IsVisible="false"
+                Text="Export GLTF"
+                SemanticProperties.Hint="Export loaded files as GLTF"
+                Clicked="OnExportGltfClicked"
+                HorizontalOptions="Center"
+                Style="{StaticResource DFButton}"/>
 
-                <Button
-                    x:Name="CounterBtn"
-                    Text="Click me"
-                    SemanticProperties.Hint="Counts the number of times you click"
-                    Clicked="OnCounterClicked"
-                    HorizontalOptions="Center" />
 
-            </VerticalStackLayout>
-        </ScrollView>
+            <Label Text="Texture Directories" FontSize="Large"/>
+            <Label Text="3DOs sometimes include references to textures from other directories and/or GOBs. List those directories here so that textures can be found during conversion." LineBreakMode="WordWrap" FontSize="Small"/>
+            <Button
+                Text="Add Directory"
+                Clicked="OnAddDirectoryClicked"
+                HorizontalOptions="Start"
+                Style="{StaticResource DFButton}"/>
+            <ListView
+                Grid.Row="0"
+                Grid.Column="1"
+                MinimumWidthRequest="100"
+                HasUnevenRows="True"
+                SelectionMode="None"
+                ItemsSource="{Binding Path=SearchDirectories.Directories}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <Grid ColumnSpacing="11" Padding="11,11">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Label
+                                    Padding="11,0"
+                                    VerticalOptions="Center"
+                                    Text="{Binding .}"
+                                    FontSize="Small" />
+                                <Button
+                                    Text="DEL"
+                                    Clicked="OnSearchDirDeleteClicked"
+                                    MaximumWidthRequest="44"
+                                    Grid.Column="1"
+                                    Padding="3,3"
+                                    BackgroundColor="Gray"
+                                    TextColor="White"
+                                    />
+                            </Grid>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+        </VerticalStackLayout>
         <ListView
             Grid.Row="0"
-            Grid.Column="2"
-            BackgroundColor="LavenderBlush"
-            ItemsSource="{Binding Path=UserFileReferences}">
+            Grid.Column="1"
+            MinimumWidthRequest="100"
+            HasUnevenRows="True"
+            SelectionMode="Single"
+            ItemsSource="{Binding Path=Files}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Grid ColumnSpacing="11" Padding="11,11">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label
+                                Padding="11,0"
+                                VerticalOptions="Center"
+                                Text="{Binding FileName}"
+                                FontSize="Body" />
+                            <Button
+                                Text="DEL"
+                                Clicked="OnFileDeleteClicked"
+                                MaximumWidthRequest="44"
+                                Grid.Column="1"
+                                Padding="3,3"
+                                BackgroundColor="Gray"
+                                TextColor="White"
+                                />
+                        </Grid>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
         </ListView>
-        <Border
+        <!--<Border
             Grid.Row="0"
-            Grid.Column="3"
+            Grid.Column="2"
             BackgroundColor="IndianRed">
             <Label
                 BackgroundColor="DarkOrchid">Hello</Label>
-        </Border>
+        </Border>-->
     </Grid>
 </ContentPage>
