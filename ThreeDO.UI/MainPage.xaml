@@ -1,56 +1,90 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ThreeDO.MainPage">
+             x:Class="ThreeDO.MainPage"
+             Title="3DO Tools">
+    <Grid
+        BackgroundColor="Aquamarine">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
 
-    <ScrollView>
-        <VerticalStackLayout
-            Spacing="25"
-            Padding="30,0"
-            VerticalOptions="Center">
 
+        <ScrollView
+            Grid.Row="0"
+            Grid.Column="0"
+            BackgroundColor="DarkMagenta">
+            <VerticalStackLayout
+                Spacing="25"
+                Padding="30,0"
+                BackgroundColor="Bisque">
+
+                <Label
+                    Text="3DO Tools"
+                    SemanticProperties.HeadingLevel="Level1"
+                    FontSize="32"
+                    HorizontalOptions="Center"
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.RowSpan="1"/>
+
+                <Label
+                    Text="Load 3DO files and then export them."
+                    SemanticProperties.HeadingLevel="Level2"
+                    SemanticProperties.Description="Load 3DO files and then export them"
+                    FontSize="18"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.RowSpan="3"/>
+
+
+                <Button
+                    x:Name="LoadFiles"
+                    Text="Load 3DOs"
+                    SemanticProperties.Hint="Load 3DO Files to be converted"
+                    Clicked="OnLoadClicked"
+                    HorizontalOptions="Center" />
+
+                <Button
+                    x:Name="ExportDae"
+                    Text="Export DAE"
+                    SemanticProperties.Hint="Export loaded files as DAE"
+                    Clicked="OnExportDaeClicked"
+                    HorizontalOptions="Center" />
+
+                <Button
+                    x:Name="ExportGltf"
+                    Text="Export GLTF"
+                    SemanticProperties.Hint="Export loaded files as GLTF"
+                    Clicked="OnExportGltfClicked"
+                    HorizontalOptions="Center" />
+
+                <Button
+                    x:Name="CounterBtn"
+                    Text="Click me"
+                    SemanticProperties.Hint="Counts the number of times you click"
+                    Clicked="OnCounterClicked"
+                    HorizontalOptions="Center" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+        <ListView
+            Grid.Row="0"
+            Grid.Column="2"
+            BackgroundColor="LavenderBlush"
+            ItemsSource="{Binding Path=UserFileReferences}">
+        </ListView>
+        <Border
+            Grid.Row="0"
+            Grid.Column="3"
+            BackgroundColor="IndianRed">
             <Label
-                Text="3DO Tools"
-                SemanticProperties.HeadingLevel="Level1"
-                FontSize="32"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Load 3DO files and then export them."
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Load 3DO files and then export them"
-                FontSize="18"
-                HorizontalOptions="Center" />
-
-            <Button
-                x:Name="LoadFiles"
-                Text="Load 3DOs"
-                SemanticProperties.Hint="Load 3DO Files to be converted"
-                Clicked="OnLoadClicked"
-                HorizontalOptions="Center" />
-
-            <Button
-                x:Name="ExportDae"
-                Text="Export DAE"
-                SemanticProperties.Hint="Export loaded files as DAE"
-                Clicked="OnExportDaeClicked"
-                HorizontalOptions="Center" />
-
-            <Button
-                x:Name="ExportGltf"
-                Text="Export GLTF"
-                SemanticProperties.Hint="Export loaded files as GLTF"
-                Clicked="OnExportGltfClicked"
-                HorizontalOptions="Center" />
-
-            <Button
-                x:Name="CounterBtn"
-                Text="Click me"
-                SemanticProperties.Hint="Counts the number of times you click"
-                Clicked="OnCounterClicked"
-                HorizontalOptions="Center" />
-
-        </VerticalStackLayout>
-    </ScrollView>
-
+                BackgroundColor="DarkOrchid">Hello</Label>
+        </Border>
+    </Grid>
 </ContentPage>

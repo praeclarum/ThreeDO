@@ -12,6 +12,18 @@ namespace ThreeDO
 
         private string _outputDirectory = "";
         public string OutputDirectory { get => _outputDirectory; set => SetProperty(ref _outputDirectory, value); }
+        public IEnumerable<string> UserFileReferences
+        {
+            get
+            {
+                foreach (var f in Files)
+                    yield return f.FilePath;
+                foreach (var g in SearchDirectories.GobPaths)
+                    yield return g;
+                foreach (var d in SearchDirectories.Directories)
+                    yield return d;
+            }
+        }
 
         public void AddFiles(string[] filePaths)
         {
@@ -19,6 +31,7 @@ namespace ThreeDO
             {
                 Files.Add(new BatchConversionFile(filePath));
             }
+            OnPropertyChanged(nameof(UserFileReferences));
         }
 
         void Warn(string message)
@@ -66,6 +79,32 @@ namespace ThreeDO
             }).ToArray();
             await Task.WhenAll(fileTasks);
         }
+
+        public void AddFilePaths(string[] filePaths)
+        {
+            foreach (var filePath in filePaths)
+            {
+                AddFilePath(filePath);
+            }
+        }
+
+        private void AddFilePath(string filePath)
+        {
+            if (Path.GetExtension(filePath).ToLowerInvariant() == ".3do")
+            {
+                AddFiles(new[] { filePath });
+            }
+            else if (Path.GetExtension(filePath).ToLowerInvariant() == ".gob")
+            {
+                SearchDirectories.GobPaths.Add(filePath);
+                OnPropertyChanged(nameof(UserFileReferences));
+            }
+            else if (Directory.Exists(filePath))
+            {
+                SearchDirectories.Directories.Add(filePath);
+                OnPropertyChanged(nameof(UserFileReferences));
+            }
+        }
     }
 
     public class BatchConversionFile : ObservableObject
@@ -74,7 +113,6 @@ namespace ThreeDO
 
         readonly Task<ThreeDObject> objTask;
         public Task<ThreeDObject> GetObjectAsync() => objTask;
-        public ThreeDObject Object => objTask.Result;
 
         public BatchConversionFile(string filePath)
         {

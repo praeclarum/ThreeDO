@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
+
+using MvvmHelpers;
 
 using ThreeDO.Core;
 
 namespace ThreeDO
 {
-    public class SearchDirectories
+    public class SearchDirectories: ObservableObject
     {
-        public List<string> Directories { get; set; } = new();
+        public ObservableCollection<string> Directories { get; set; } = new();
+        public ObservableCollection<string> GobPaths { get; set; } = new();
 
         public byte[]? ReadFile(string name, string startDir)
         {
@@ -31,6 +35,13 @@ namespace ThreeDO
                     {
                         return data;
                     }
+                }
+            }
+            foreach (var gp in GobPaths)
+            {
+                if (GetGob(gp).ReadFile(name) is byte[] data)
+                {
+                    return data;
                 }
             }
             return null;
