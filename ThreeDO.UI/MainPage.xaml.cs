@@ -40,6 +40,7 @@ public partial class MainPage : ContentPage
 			FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
 			{
 				{ DevicePlatform.MacCatalyst, new [] { "3do", "gob" } },
+                { DevicePlatform.WinUI, new [] { ".3do", ".gob" } },
 				//{ DevicePlatform.MacCatalyst, new [] { "public.folder", "com.lucasarts.3do", "com.lucasarts.gob" } },
 				//{ DevicePlatform.iOS, new [] { "public.folder", "com.lucasarts.3do", "com.lucasarts.gob" } },
 			})
@@ -78,10 +79,12 @@ public partial class MainPage : ContentPage
 	{
         var files = await FilePicker.PickMultipleAsync(new PickOptions
         {
+            
             FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
             {
                 { DevicePlatform.MacCatalyst, new [] { "public.folder" } },
-			})
+                { DevicePlatform.WinUI, new [] { ".gob" } },
+            })
         });
         batch.AddFilePaths(files.Select(x => x.FullPath).ToArray());
         SaveSettings();
