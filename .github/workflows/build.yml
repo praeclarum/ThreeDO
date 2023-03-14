@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -28,10 +29,14 @@ jobs:
     - name: Build Windows UI
       run: dotnet build -c Release -f net7.0-windows10.0.19041.0 ThreeDO.UI\ThreeDO.csproj
     - name: Publish Windows UI
+      #if: ${{ github.event_name == 'workflow_dispatch' }}
       run: |
         dotnet publish -c Release -f net7.0-windows10.0.19041.0 /p:RuntimeIdentifierOverride=win10-x64 ThreeDO.UI\ThreeDO.csproj
-                
-        dir ThreeDO.UI\bin\Release\net7.0-windows10.0.19041.0\win10-x64\publish\
         mkdir Output\ThreeDO
         xcopy /Y /E ThreeDO.UI\bin\Release\net7.0-windows10.0.19041.0\win10-x64\publish Output\ThreeDO
         powershell Compress-Archive -LiteralPath 'Output\ThreeDO' -DestinationPath ".\ThreeDO.zip"
+    - name: Upload Windows UI
+      uses: actions/upload-artifact@v2
+      with:
+        name: ThreeDO
+        path: ThreeDO.zip
