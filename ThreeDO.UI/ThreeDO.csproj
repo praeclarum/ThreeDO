@@ -41,6 +41,7 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
 		<PublishTrimmed>true</PublishTrimmed>
+    <WindowsPackageType>None</WindowsPackageType>
 	</PropertyGroup>
 	<ItemGroup>
 		<!-- App Icon -->
