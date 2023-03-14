@@ -26,8 +26,8 @@ jobs:
         dotnet publish -c Release -r win-x64 ThreeDO.CommandLine\ThreeDO.CommandLine.csproj
         dir ThreeDO.CommandLine\bin\Release\net7.0\win-x64\publish\
     - name: Build Windows UI
-      run: dotnet build -c Release -f net7.0-windows10.0.19041.0 ThreeDO.UI/ThreeDO.csproj
+      run: dotnet build -c Release -f net7.0-windows10.0.19041.0 ThreeDO.UI\ThreeDO.csproj
     - name: Publish Windows UI
       run: |
-        dotnet publish -c Release -f net7.0-windows10.0.19041.0 -r win-x64 ThreeDO.UI/ThreeDO.csproj
-        dir ThreeDO.UI\bin\Release\net7.0-windows10.0.19041.0\win-x64\publish\
+        dotnet publish -c Release -f net7.0-windows10.0.19041.0 /p:RuntimeIdentifierOverride=win10-x64 ThreeDO.UI\ThreeDO.csproj
+        dir ThreeDO.UI\bin\Release\net7.0-windows10.0.19041.0\win10-x64\publish\
